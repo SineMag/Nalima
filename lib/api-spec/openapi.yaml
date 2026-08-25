@@ -1,0 +1,181 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: agriculture
+    description: Offline agricultural intelligence operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /knowledge:
+    get:
+      operationId: listKnowledge
+      tags: [agriculture]
+      summary: List local agricultural knowledge
+      responses:
+        "200":
+          description: Local knowledge items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/KnowledgeItem"
+  /chat:
+    post:
+      operationId: chatWithNala
+      tags: [agriculture]
+      summary: Ask Nala an agricultural question
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatInput"
+      responses:
+        "200":
+          description: Offline assistant response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Local model unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    KnowledgeItem:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        topic:
+          type: string
+        region:
+          type: string
+        language:
+          type: string
+        content:
+          type: string
+        source:
+          type: string
+        confidence:
+          type: string
+      required:
+        - id
+        - title
+        - topic
+        - region
+        - language
+        - content
+        - source
+        - confidence
+    ChatInput:
+      type: object
+      properties:
+        question:
+          type: string
+          minLength: 1
+          maxLength: 4000
+        conversation:
+          type: array
+          maxItems: 12
+          items:
+            $ref: "#/components/schemas/ConversationTurn"
+      required:
+        - question
+    ConversationTurn:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+          minLength: 1
+          maxLength: 4000
+      required:
+        - role
+        - content
+    ChatResponse:
+      type: object
+      properties:
+        answer:
+          type: string
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/KnowledgeItem"
+        runtime:
+          $ref: "#/components/schemas/RuntimeInfo"
+      required:
+        - answer
+        - sources
+        - runtime
+    RuntimeInfo:
+      type: object
+      properties:
+        mode:
+          type: string
+        model:
+          type: string
+        elapsed_ms:
+          type: number
+        tokens:
+          type: number
+        tokens_per_second:
+          type: number
+        model_available:
+          type: boolean
+      required:
+        - mode
+        - model
+        - elapsed_ms
+        - tokens
+        - tokens_per_second
+        - model_available
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+

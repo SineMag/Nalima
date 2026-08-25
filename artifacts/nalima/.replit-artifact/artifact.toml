@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Nalima — Offline Agricultural Intelligence"
+description = "An offline-first agricultural intelligence app for constrained laptops, combining local agricultural context with a llama.cpp GGUF model and a focused Ask Nala chat experience."
+version = "1.0.0"
+id = "artifacts/nalima"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23671
+
+[services.development]
+run = "pnpm --filter @workspace/nalima run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/nalima", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/nalima/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23671"
+BASE_PATH = "/"
